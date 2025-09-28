@@ -1,7 +1,16 @@
+const multer = require('multer');
+
 module.exports = (err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({
-        message: 'Something went wrong!',
-        error: process.env.NODE_ENV === 'production' ? {} : err.stack
+    const status = err.status || (err instanceof multer.MulterError ? 400 : 500);
+    const message = err.message || 'Error inesperado';
+
+    if (status >= 500) {
+        console.error('[errorHandler]', err);
+    } else {
+        console.warn('[errorHandler]', message);
+    }
+
+    res.status(status).json({
+        message,
     });
 };

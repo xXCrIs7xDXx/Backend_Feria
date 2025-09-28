@@ -5,94 +5,123 @@ Este es un proyecto de backend simple construido con Node.js y Express. A contin
 ## Requisitos
 
 - Node.js (versión 14 o superior)
-- npm (gestor de paquetes de Node)
 
 ## Instalación
 
-1. Clona el repositorio:
+1. Clona el repositorio.
+2. Instala las dependencias con `npm install`.
+3. Configura las variables de entorno (ver sección siguiente).
 
-   ```
-   git clone <URL_DEL_REPOSITORIO>
-   ```
+## Configuración de Gemini
 
-2. Navega al directorio del proyecto:
-
-   ```
-   cd backend-node-app
-   ```
-
-3. Instala las dependencias:
-
-   ```
-   npm install
-   ```
-
-4. Crea un archivo `.env` basado en el archivo `.env.example` y configura las variables de entorno necesarias.
-
-## Ejecución
-
-Para iniciar la aplicación, ejecuta el siguiente comando:
+1. Obtén una API Key en Google AI Studio.
+2. Crea un archivo `.env` en la raíz del proyecto con el contenido:
 
 ```
-npm start
+GEMINI_API_KEY=tu_api_key
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_API_VERSION=v1beta
 ```
 
-La aplicación se ejecutará en `http://localhost:3000` (o el puerto que hayas configurado en tu archivo de configuración).
+3. Reinicia la aplicación para que la configuración se cargue correctamente.
+4. (Opcional) Para comprobar qué modelos están disponibles con tu clave, ejecuta:
+
+```powershell
+curl "https://generativelanguage.googleapis.com/$Env:GEMINI_API_VERSION/models?key=$Env:GEMINI_API_KEY"
+```
+
+Consulta el campo `name` de cada modelo (por ejemplo `models/gemini-2.5-pro`) y usa el sufijo tras `models/` en `GEMINI_MODEL`.
 
 ## Endpoint disponible
 
-La API expone un único `GET` en `http://localhost:3000/api/project-review`. Responde con un objeto JSON que contiene dos propiedades:
+La API expone un endpoint principal:
 
-- `image`: cadena Base64 (Data URI) con la imagen del producto/proyecto.
-- `product`: JSON con el detalle del producto (título, precios, categoría, etc.).
+| Método | Ruta                    | Descripción                                                                 |
+|--------|-------------------------|-----------------------------------------------------------------------------|
+| POST   | `/api/products/verify`  | Envía la información del producto y la imagen a Gemini para determinar si es una posible estafa. |
 
-### Parámetros soportados
+### Estructura del request (`multipart/form-data`)
 
-Puedes enviar cualquier campo como query string para sobrescribir los valores por defecto:
+- **product**: campo de texto con un JSON que incluya:
 
-| Parámetro              | Descripción                                              |
-|------------------------|----------------------------------------------------------|
-| `id`                   | Identificador único.                                     |
-| `title`                | Título o nombre del producto/proyecto.                   |
-| `priceAmount`          | Precio actual (numérico).                                |
-| `priceCurrency`        | Moneda del precio actual (ej. `USD`).                    |
-| `originalPriceAmount`  | Precio original (numérico).                              |
-| `originalPriceCurrency`| Moneda del precio original.                              |
-| `category`             | Categoría.                                               |
-| `condition`            | Condición (ej. `New`, `Used`, `Refurbished`).            |
-| `location`             | Ubicación.                                               |
-| `description`          | Descripción larga.                                      |
-| `warranty`             | Detalle de la garantía.                                  |
-| `accessories`          | Lista separada por comas de accesorios incluidos.        |
-| `checksum`             | Hash o identificador para validación.                    |
-| `image`                | Imagen codificada en Base64 (Data URI).                  |
-
-Si omites un parámetro, el endpoint responderá con un valor por defecto.
-
-### Ejemplos de uso
-
-#### Cargar datos por defecto
-
-```powershell
-http GET http://localhost:3000/api/project-review
+```json
+{
+   "title": "string",
+   "description": "string",
+   "price": 1000,
+   "currency": "USD",
+   "category": "string",
+   "location": "string"
+}
 ```
 
-#### Sobrescribir valores
+- **image**: archivo JPG o PNG (máximo 5 MB) enviado en el campo `image`.
+
+### Ejemplo con HTTPie
 
 ```powershell
-http GET http://localhost:3000/api/project-review \
-   title=="iPhone 15 Pro" \
-   description=="Smartphone con chip A17, 256GB y cámara triple." \
-   priceAmount==1099.99 \
-   priceCurrency==USD \
-   category=="Electronics" \
-   condition=="New" \
-   location=="Los Angeles, CA" \
-   accessories=="Cable USB-C,Cargador 30W" \
-   warranty=="12 meses"
+http --form POST http://localhost:3000/api/products/verify \
+   product='{"title":"Laptop Pro","description":"Laptop con 32GB RAM","price":2499,"currency":"USD","category":"Computers","location":"New York"}' \
+   image@"C:/ruta/foto.jpg"
 ```
 
-> Si no cuentas con HTTPie, puedes usar Postman, Thunder Client o un navegador (`http://localhost:3000/api/project-review?title=...`).
+### Respuesta esperada
+
+```json
+{
+   "isScam": false,
+   "reason": "Explicación breve de Gemini"
+}
+```
+
+### Configuración de Gemini
+
+1. Obtén una API Key en Google AI Studio.
+2. Crea un archivo `.env` en la raíz del proyecto con el contenido:
+
+```
+GEMINI_API_KEY=tu_api_key
+GEMINI_MODEL=gemini-1.5-flash-latest
+GEMINI_API_VERSION=v1beta
+```
+
+3. Reinicia la aplicación para que la configuración se cargue correctamente.
+4. (Opcional) Para comprobar qué modelos están disponibles con tu clave, ejecuta:
+
+```powershell
+curl "https://generativelanguage.googleapis.com/v1beta/models?key=$Env:GEMINI_API_KEY"
+```
+
+Consulta el campo `name` de cada modelo (por ejemplo `models/gemini-2.0-flash-exp`) y usa el sufijo tras `models/` en `GEMINI_MODEL`.
+   Content-Type:application/json \
+   title="iPhone 15 Pro" \
+   description="Smartphone con chip A17, 256GB y cámara triple." \
+   priceAmount:=1099.99 \
+   priceCurrency=USD \
+   originalPriceAmount:=1299.99 \
+   originalPriceCurrency=USD \
+   category="Electronics" \
+   condition="New" \
+   location="Los Angeles, CA" \
+   accessories="Cable USB-C,Cargador 30W" \
+   warranty="12 meses" \
+   checksum="sha256:lote-001"
+```
+
+```powershell
+http POST http://localhost:3000/api/project-review/receive < payload.json
+```
+
+> También puedes usar Postman o Thunder Client; envía el cuerpo como JSON en una solicitud `POST`.
+
+#### Enviar imagen como archivo (`multipart/form-data`)
+
+```powershell
+http --form POST http://localhost:3000/api/project-review \
+   title="Cámara Mirrorless Pro X1" \
+   priceAmount:=299.99 \
+   image@"C:/ruta/foto.jpg"
+```
 
 ## Estructura del Proyecto
 
