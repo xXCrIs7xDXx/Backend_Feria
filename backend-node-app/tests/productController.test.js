@@ -36,7 +36,7 @@ describe('productController.verifyProduct', () => {
         const req = baseReq();
         const res = createRes();
 
-        const geminiResult = { isScam: false, reason: 'Todo en orden' };
+    const geminiResult = { decision: 'SI', reason: 'Producto legítimo' };
         geminiService.verifyProduct.mockResolvedValue(geminiResult);
 
         await productController.verifyProduct(req, res, next);
@@ -54,7 +54,7 @@ describe('productController.verifyProduct', () => {
     it('debe pasar los errores de Gemini al middleware de errores', async () => {
         const req = baseReq();
         const res = createRes();
-        const error = new Error('Fallo en Gemini');
+    const error = new Error('Fallo en Gemini');
 
         geminiService.verifyProduct.mockRejectedValue(error);
 

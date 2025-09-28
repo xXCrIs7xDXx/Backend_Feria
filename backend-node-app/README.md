@@ -21,6 +21,8 @@ Este es un proyecto de backend simple construido con Node.js y Express. A contin
 GEMINI_API_KEY=tu_api_key
 GEMINI_MODEL=gemini-2.5-flash
 GEMINI_API_VERSION=v1beta
+GEMINI_DECISION_AUTHENTIC=SI
+GEMINI_DECISION_FAKE=NO
 ```
 
 3. Reinicia la aplicación para que la configuración se cargue correctamente.
@@ -30,7 +32,7 @@ GEMINI_API_VERSION=v1beta
 curl "https://generativelanguage.googleapis.com/$Env:GEMINI_API_VERSION/models?key=$Env:GEMINI_API_KEY"
 ```
 
-Consulta el campo `name` de cada modelo (por ejemplo `models/gemini-2.5-pro`) y usa el sufijo tras `models/` en `GEMINI_MODEL`.
+Consulta el campo `name` de cada modelo (por ejemplo `models/gemini-2.5-pro`) y usa el sufijo tras `models/` en `GEMINI_MODEL`. Si necesitas otros textos para las decisiones, ajusta `GEMINI_DECISION_AUTHENTIC` y `GEMINI_DECISION_FAKE`.
 
 ## Endpoint disponible
 
@@ -69,10 +71,13 @@ http --form POST http://localhost:3000/api/products/verify \
 
 ```json
 {
-   "isScam": false,
-   "reason": "Explicación breve de Gemini"
+   "decision": "SI",
+   "reason": "Explicación breve del resultado"
 }
 ```
+
+- Si `decision` es "SI", el producto se considera auténtico.
+- Si `decision` es "NO", el valor de `reason` explicará por qué se detectó un posible fraude.
 
 ### Configuración de Gemini
 
