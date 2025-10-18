@@ -7,11 +7,13 @@ const config = require("./config/config");
 
 const app = express();
 
-// Middleware CORS: permitir frontend en localhost:3000
+// Middleware CORS: permitir frontend en localhost:3001
 app.use(
 	cors({
-		origin: "http://localhost:3000",
-		credentials: true, // si quieres enviar cookies/autenticación
+		origin: "http://localhost:3001",
+		credentials: true,
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		allowedHeaders: ['Content-Type', 'Authorization']
 	})
 );
 

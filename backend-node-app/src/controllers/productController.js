@@ -50,34 +50,22 @@ async function uploadJsonToPinata(productPayload) {
 const productController = {
 	verifyProduct: async (req, res, next) => {
 		try {
-			const { file } = req;
-			const { product } = req.body;
+			const { file, productData } = req;
 
-			if (!file || !product) {
-				const error = new Error("Se requiere 'product' e 'image'.");
+			if (!file) {
+				const error = new Error("Se requiere una imagen.");
 				error.status = 400;
 				throw error;
 			}
 
-			let parsedProduct;
-			try {
-				parsedProduct = JSON.parse(product);
-			} catch {
-				const error = new Error("El campo 'product' debe ser un JSON válido.");
+			if (!productData) {
+				const error = new Error("Faltan datos del producto.");
 				error.status = 400;
 				throw error;
 			}
 
-			// Validaciones básicas
-			if (
-				!parsedProduct.title ||
-				!parsedProduct.price ||
-				!parsedProduct.wallet
-			) {
-				const error = new Error("Faltan campos obligatorios en el producto.");
-				error.status = 400;
-				throw error;
-			}
+			// productData ya viene validado del middleware
+			const parsedProduct = productData;
 
 			// Paso 1: Verificación con Gemini
 			const geminiResult = await geminiService.verifyProduct({
@@ -97,15 +85,14 @@ const productController = {
 			// Paso 2: Subir imagen a Pinata
 			const imageUpload = await uploadFileToPinata(file);
 
-			// Paso 3: Subir JSON a Pinata (incluyendo wallet y CID de imagen)
+			// Paso 3: Subir JSON a Pinata (incluyendo CID de imagen)
 			const productPayload = {
 				titulo: parsedProduct.title,
 				descripcion: parsedProduct.description,
 				precio: parsedProduct.price,
-				moneda: parsedProduct.currency,
+				moneda: parsedProduct.currency || 'USD',
 				categoria: parsedProduct.category,
 				ubicacion: parsedProduct.location,
-				wallet: parsedProduct.wallet, // ← wallet del usuario
 				cid_imagen: imageUpload.IpfsHash,
 			};
 

@@ -19,7 +19,7 @@ const parseProduct = (rawProduct) => {
 };
 
 const validateProduct = (product) => {
-    const requiredStringFields = ['title', 'description', 'currency', 'category', 'location'];
+    const requiredStringFields = ['title', 'description', 'category', 'location'];
 
     requiredStringFields.forEach((field) => {
         if (!product[field] || typeof product[field] !== 'string') {
@@ -42,9 +42,13 @@ const validateProduct = (product) => {
         throw error;
     }
 
+    // Currency es opcional, por defecto USD
+    const currency = product.currency || 'USD';
+
     return {
         ...product,
         price: priceNumber,
+        currency,
     };
 };
 
